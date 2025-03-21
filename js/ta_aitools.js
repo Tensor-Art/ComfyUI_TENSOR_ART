@@ -4,7 +4,7 @@ import { useNodeFileInput, uploadFile } from "./utils/upload.js";
 
 let origProps = {};
 let initialized = false;
-let maxCount = 9
+let maxCount = 99
 const HIDDEN_TAG = "tahide";
 
 const nodesList = {
@@ -36,6 +36,16 @@ const findInputIndexByName = (node, name) => {
 const doesInputWithNameExist = (node, name) => {
     return node.inputs ? node.inputs.some((input) => input.name === name) : false;
 };
+
+const moveWidgetBehind = (node, widget, target) => {
+    const index = node.widgets.indexOf(widget);
+    if (index === -1) {
+        return;
+    }
+    node.widgets.splice(index, 1);
+    const targetIndex = node.widgets.indexOf(target);
+    node.widgets.splice(targetIndex+1, 0, widget);
+}
 
 function handleWidgetVisibility(node, thresholdValue, widgetNamePrefix, maxCount) {
     for (let i = 1; i <= maxCount; i++) {
@@ -108,15 +118,22 @@ function resetAIToolsNode(node) {
     handleWidgetVisibility(node, 0, "fieldName_", maxCount);
     handleWidgetVisibility(node, 0, "nodeId_", maxCount);
     findWidgetByName(node, "aiToolsName").value = "null";
+    //clean once widget
+    for (let i = node.widgets.length; i >= 0; i--) {
+        if (node.widgets[i]?.once) {
+            node.widgets.splice(i, 1);
+        }
+    }
 }
 
 const nodeName2Handler = {
     "TensorArt_LoadImage": loadImageHandler,
+    "LoadImage": loadImageHandler,
 }
 
 function loadImageHandler(node, widget, baseUrl, apiKey) {
     console.log("loadImageHandler")
-    let newWidget = node.addWidget("button", widget.name, "upload", ()=> {
+    let newWidget = node.addWidget("button", "➕📷"+widget.name, "upload", ()=> {
         const {openFileSelection} = useNodeFileInput(node, {
             accept: "image/png,image/jpeg,image/webp",
             onSelect: async (files) => {
@@ -136,17 +153,21 @@ function loadImageHandler(node, widget, baseUrl, apiKey) {
         })
         openFileSelection();
     });
+    newWidget.once = true;
+    return newWidget
 }
 
 async function TAAIToolsNodeAiToolsIdHandler(node, widget) {
     if (!initialized) {
         return;
     }
-    let data = {}
-    let baseUrl = ""
-    let apiKey = ""
+
+    resetAIToolsNode(node);
+    let data = {};
+    let baseUrl = "";
+    let apiKey = "";
     try {
-        let settingNode = getSettingNode()
+        let settingNode = getSettingNode();
         if (!settingNode) {
             throw new Error("Missing settingNode");
         }
@@ -163,22 +184,41 @@ async function TAAIToolsNodeAiToolsIdHandler(node, widget) {
 
         data = await httpGet(baseUrl+"/v1/workflows/"+aiToolsId, apiKey);
     } catch (error) {
-        resetAIToolsNode(node);
+        console.log(error);
     } finally {
         console.log(data)
+        console.log(node)
         findWidgetByName(node, "aiToolsName").value = data.name;
         handleWidgetVisibility(node, data.fields.fieldAttrs.length, "fieldValue_", maxCount);
         handleWidgetVisibility(node, data.fields.fieldAttrs.length, "fieldName_", maxCount);
         handleWidgetVisibility(node, data.fields.fieldAttrs.length, "nodeId_", maxCount);
         data.fields.fieldAttrs.forEach((field, index) => {
             let fieldValueWidget = findWidgetByName(node, `fieldValue_${index+1}`)
+            let fieldNameWidget = findWidgetByName(node, `fieldName_${index+1}`)
+            let nodeIdWidget = findWidgetByName(node, `nodeId_${index+1}`)
             let h = nodeName2Handler[field.nodeName]
             if (h) {
-                h(node, fieldValueWidget, baseUrl, apiKey)
+                let newWidget = h(node, fieldValueWidget, baseUrl, apiKey)
+                if (newWidget) {
+                    moveWidgetBehind(node, newWidget, fieldValueWidget);
+                }
+            } else {
+                fieldValueWidget.value = field.fieldValue;
             }
-            findWidgetByName(node, `fieldName_${index+1}`).value = field.fieldName;
-            findWidgetByName(node, `nodeId_${index+1}`).value = field.nodeId
+            let inputStr = JSON.parse(field.inputString)
+            if (inputStr.options && inputStr.options.values) {
+                fieldValueWidget.options = inputStr.options;
+                fieldValueWidget.type = "combo";
+                console.log(fieldValueWidget);
+            }
+            fieldNameWidget.value = field.fieldName;
+            fieldNameWidget.disabled = true;
+            nodeIdWidget.value = field.nodeId
+            nodeIdWidget.disabled = true;
+            nodeIdWidget.hidden = true;
         })
+        const newHeight = node.computeSize()[1];
+        node.setSize([node.size[0], newHeight]);
         node.setDirtyCanvas(true, true);
     }
 }
@@ -206,7 +246,7 @@ async function handleUpload(file, baseUrl, apiKey) {
     if (uploadFileRes.Status !== "OK") {
         return;
     }
-    alert("上传成功")
+    alert("upload success")
     return resourceImgRes.resourceId;
 }
 

@@ -8,6 +8,7 @@ from PIL import Image
 from io import BytesIO
 import numpy as np
 import torch
+import comfy
 
 class TAExecuteNode:
     def __init__(self):
@@ -67,7 +68,9 @@ class TAExecuteNode:
         return response.json()
 
     def get_job_result(self, job_id, settings, runTimeout=600, queryInterval=5):
+        pbar = comfy.utils.ProgressBar(100)
         while True:
+            pbar.update(1)
             time.sleep(queryInterval)
             runTimeout -= queryInterval
             if runTimeout <= 0:

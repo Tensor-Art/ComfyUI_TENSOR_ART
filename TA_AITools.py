@@ -1,4 +1,4 @@
-INPUT_LIM = 9
+INPUT_LIM = 99
 
 class TAAIToolsNode:
     def __init__(self):
@@ -34,14 +34,14 @@ class TAAIToolsNode:
             if not kwargs.get(f"nodeId_{i}"):
                 continue
 
-            node_info = {
+            nodeInfo = {
                 "nodeId": kwargs.get(f"nodeId_{i}"),
                 "fieldName": kwargs.get(f"fieldName_{i}"),
                 "fieldValue": kwargs.get(f"fieldValue_{i}")
             }
 
-            if node_info["nodeId"] == "":
+            if nodeInfo["nodeId"] == "":
                 continue
-            self.fieldInputs.append(node_info)
+            self.fieldInputs.append(nodeInfo)
 
         return [{"fieldInputs": self.fieldInputs, "aiToolsId": aiToolsId}]

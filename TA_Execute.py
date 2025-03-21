@@ -22,7 +22,7 @@ class TAExecuteNode:
                 "input": ("STRUCT",),    # 输入的数据
             },
             "optional": {
-                "runTimeout": ("INT", {"default": 1200}),
+                "runTimeout": ("INT", {"default": 3600}),
                 "queryInterval": ("INT", {"default": 5}),
             },
         }

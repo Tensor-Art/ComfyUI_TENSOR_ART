@@ -34,7 +34,7 @@ git clone git@github.com:Tensor-Art/ComfyUI_TENSOR_ART.git
 会自动获取AITools内容并渲染节点
 ![image](https://github.com/user-attachments/assets/124df587-0e60-4446-bdfa-85b18a563df8)
 8. 创建ExecuteNode进行节点的LINK
-![image](https://github.com/user-attachments/assets/700c71e4-c73a-4cd8-ba3b-042eec916de1)
+![image](https://github.com/user-attachments/assets/5dfb2950-c47d-4ea8-a612-c82f1bd226ec)
 9. 执行等待结果
 ![image](https://github.com/user-attachments/assets/50a13afe-1b53-4644-9ea3-27c1349859a5)
 

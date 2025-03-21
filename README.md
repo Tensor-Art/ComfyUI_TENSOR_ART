@@ -43,7 +43,7 @@ This project implements a set of custom nodes for ComfyUI, integrating some of t
      ![image](https://github.com/user-attachments/assets/124df587-0e60-4446-bdfa-85b18a563df8)
 
 8. **Create an ExecuteNode to Link Nodes**
-   - ![image](https://github.com/user-attachments/assets/700c71e4-c73a-4cd8-ba3b-042eec916de1)
+   - ![image](https://github.com/user-attachments/assets/5dfb2950-c47d-4ea8-a612-c82f1bd226ec)
 
 9. **Execute and Wait for Results**
    - ![image](https://github.com/user-attachments/assets/50a13afe-1b53-4644-9ea3-27c1349859a5)

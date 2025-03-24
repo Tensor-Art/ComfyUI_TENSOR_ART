@@ -11,4 +11,4 @@ Repository = "https://github.com/Tensor-Art/ComfyUI_TENSOR_ART"
 [tool.comfy]
 PublisherId = ""
 DisplayName = "ComfyUI_TENSOR_ART"
-Icon = ""
+Icon = "https://image.tensorartassets.com/cdn-cgi/image/anim=true,plain=false,f=avif,q=85/frontend/1720777845454.svg"

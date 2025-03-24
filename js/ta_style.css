@@ -1,0 +1,47 @@
+@keyframes ta-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ta-loader {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border-left-color: #000;
+  animation: ta-spin 1s linear infinite;
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.ta-icon {
+  width: 138px;
+  height: 40px;
+  background-image: url('./icon.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-right: 10px;
+}
+
+.ta-dialog-text {
+  color: #000;
+  flex: 1;
+}
+
+.ta-dialog-container {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f0f8ff, #e0ffff); /* 渐变背景 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 1024px;
+  min-width: 256px;
+  margin: auto;
+}

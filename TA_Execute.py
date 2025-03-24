@@ -9,6 +9,7 @@ from io import BytesIO
 import numpy as np
 import torch
 import comfy
+import server
 
 class TAExecuteNode:
     def __init__(self):
@@ -22,7 +23,7 @@ class TAExecuteNode:
                 "input": ("STRUCT",),    # 输入的数据
             },
             "optional": {
-                "runTimeout": ("INT", {"default": 3600}),
+                "runTimeout": ("INT", {"default": 1200}),
                 "queryInterval": ("INT", {"default": 5}),
             },
         }
@@ -89,9 +90,19 @@ class TAExecuteNode:
                 job_dict = get_job_response_data['job']
                 job_status = job_dict.get('status')
                 if job_status == 'SUCCESS':
+                    self.send_success_message()
                     return job_dict.get("successInfo")
                 elif job_status == 'FAILED':
                     raise Exception(f"Job failed: {job_dict}")
+                elif job_status == 'WAITING':
+                    print(f"Job status: {job_status}. Waiting..., Job dict: {job_dict}")
+                    waiting_info = job_dict.get("waitingInfo")
+                    queue_rank = waiting_info.get("queueRank", 1)
+                    queue_len = waiting_info.get("queueLen", 1)
+                    self.send_waiting_message(queue_rank, queue_len)
+                elif job_status == 'RUNNING':
+                    print(f"Job status: {job_status}. Running...")
+                    self.send_running_message()
                 else:
                     print(f"Job status: {job_status}. Checking...")
 
@@ -156,4 +167,18 @@ class TAExecuteNode:
                 video_path = self.download_video(url)
                 video_data_list.append(video_path)
 
+        self.send_end_message()
         return image_data_list, video_data_list
+
+    def send_end_message(self):
+        server.PromptServer.instance.send_sync("ta_execute", {"status": "END"}, server.PromptServer.instance.client_id)
+
+    def send_waiting_message(self, cur, total):
+        server.PromptServer.instance.send_sync("ta_execute", {"status": "WAITING", "cur": cur, "total": total}, server.PromptServer.instance.client_id)
+
+    def send_running_message(self):
+        server.PromptServer.instance.send_sync("ta_execute", {"status": "RUNNING"}, server.PromptServer.instance.client_id)
+
+    def send_success_message(self):
+        server.PromptServer.instance.send_sync("ta_execute", {"status": "SUCCESS"}, server.PromptServer.instance.client_id)
+

@@ -1,4 +1,5 @@
 import {app} from '../../scripts/app.js'
+import {api} from '../../scripts/api.js'
 import { httpGet, httpPost } from "./utils/httpUtils.js";
 import { useNodeFileInput, uploadFile } from "./utils/upload.js";
 
@@ -19,6 +20,14 @@ const nodeWidgetHandlers = {
 
 const nodeCreateHandlers = {
     "TA_AIToolsNode": TAAIToolsNodeCreateHandler,
+}
+
+// todo: use custom widget to replace dialog
+const eventTAExecuteStatusHandler = {
+    "WAITING":  eventTAExecuteWaitingHandler,
+    "RUNNING":  eventTAExecuteRunningHandler,
+    "SUCCESS":  eventTAExecuteSuccessHandler,
+    "END": eventTAExecuteEndHandler,
 }
 
 const getSettingNode = () => {
@@ -45,6 +54,27 @@ const moveWidgetBehind = (node, widget, target) => {
     node.widgets.splice(index, 1);
     const targetIndex = node.widgets.indexOf(target);
     node.widgets.splice(targetIndex+1, 0, widget);
+}
+
+function eventTAExecuteWaitingHandler(event) {
+    let status = event.detail.status;
+    let cur = event.detail.cur;
+    let total = event.detail.total;
+    dialog(`status: ${status}, queue: ${cur}/${total}`, true);
+}
+
+function eventTAExecuteSuccessHandler(event) {
+    let status = event.detail.status;
+    dialog(`status: ${status}, Saving results...`, true);
+}
+
+function eventTAExecuteEndHandler(event) {
+    app.ui.dialog.close();
+}
+
+function eventTAExecuteRunningHandler(event) {
+    let status = event.detail.status;
+    dialog(`status: ${status}, Please be patient...`, true);
 }
 
 function handleWidgetVisibility(node, thresholdValue, widgetNamePrefix, maxCount) {
@@ -143,8 +173,19 @@ function loadImageHandler(node, widget, baseUrl, apiKey) {
                 }
 
                 let file = files[0];
-                const resourceId = await handleUpload(file, baseUrl, apiKey)
-                console.log(resourceId)
+                const intervalId = setInterval(() => {
+                    dialog("Uploading file, please wait...", true)
+                }, 1000);
+                let resourceId = null;
+                try {
+                  resourceId = await handleUpload(file, baseUrl, apiKey);
+                  console.log("Upload completed with resource ID:", resourceId);
+                } catch (error) {
+                  console.error("Upload failed:", error);
+                } finally {
+                  clearInterval(intervalId);
+                  app.ui.dialog.close();
+                }
                 if (resourceId) {
                     newWidget.value = resourceId;
                     widget.value = resourceId;
@@ -155,6 +196,25 @@ function loadImageHandler(node, widget, baseUrl, apiKey) {
     });
     newWidget.once = true;
     return newWidget
+}
+
+function dialog(text, loading) {
+    if (loading) {
+        app.ui.dialog.show(`
+        <div class="ta-dialog-container">
+          <div class="ta-icon"></div>
+          <div class="ta-loader"></div>
+          <span class="ta-dialog-text">${text}</span>
+        </div>
+        `);
+    } else {
+        app.ui.dialog.show(`
+        <div class="ta-dialog-container">
+          <div class="ta-icon"></div>
+          <span class="ta-dialog-text">${text}</span>
+        </div>
+        `);
+    }
 }
 
 async function TAAIToolsNodeAiToolsIdHandler(node, widget) {
@@ -246,12 +306,20 @@ async function handleUpload(file, baseUrl, apiKey) {
     if (uploadFileRes.Status !== "OK") {
         return;
     }
-    alert("upload success")
     return resourceImgRes.resourceId;
 }
 
 app.registerExtension({
     name: "tensorart-aitools",
+    setup: function (){
+        api.addEventListener('ta_execute', (event) => {
+            console.log(event)
+            const handler = eventTAExecuteStatusHandler[event.detail.status]
+            if (handler) {
+                handler(event);
+            }
+        }, false);
+    },
     nodeCreated(node) {
         if (!nodesList[node.comfyClass]) {
             return

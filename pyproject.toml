@@ -1,5 +1,5 @@
 [project]
-name = "tensor_art"
+name = "ComfyUI_TENSOR_ART"
 description = "This project implements a set of custom nodes for ComfyUI, integrating some of the API interfaces provided by [a/TAMS](https://tams.tensor.art/)."
 version = "1.0.1"
 license = {file = "LICENSE"}
@@ -9,6 +9,6 @@ Repository = "https://github.com/Tensor-Art/ComfyUI_TENSOR_ART"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
-PublisherId = ""
+PublisherId = "cage1993"
 DisplayName = "ComfyUI_TENSOR_ART"
 Icon = "https://image.tensorartassets.com/cdn-cgi/image/anim=true,plain=false,f=avif,q=85/frontend/1720777845454.svg"

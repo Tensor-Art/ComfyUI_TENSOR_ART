@@ -1,7 +1,7 @@
 [project]
 name = "ComfyUI_TENSOR_ART"
 description = "This project implements a set of custom nodes for ComfyUI, integrating some of the API interfaces provided by [a/TAMS](https://tams.tensor.art/)."
-version = "1.0.1"
+version = "1.0.2"
 license = {file = "LICENSE"}
 
 [project.urls]

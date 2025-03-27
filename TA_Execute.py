@@ -41,7 +41,7 @@ class TAExecuteNode:
         if not input:
             return
 
-        print(f"settings: {settings}, creating job...")
+        print(f"settings: {settings}, input: {input} creating job...")
         createJobResponse = self.create_ai_tools_job(settings, input)
         if 'job' in createJobResponse:
             job_dict = createJobResponse['job']

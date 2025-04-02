@@ -28,8 +28,8 @@ This project implements a set of custom nodes for ComfyUI, integrating some of t
    - ![image](https://github.com/user-attachments/assets/a2a7c83d-a7ac-4184-bc57-0a5c34e3a6a9)
 
 4. **Create a Settings Node**
-   - Create a TA Settings node and fill in the BaseUrl and API Key obtained in step 3.
-     ![image](https://github.com/user-attachments/assets/7a8ee242-22d0-4499-9ebe-916b982db22a)
+Go to the settings page, find TensorArt.Settings, and enter the BaseUrl and ApiKey obtained in Step 3.
+![image](https://github.com/user-attachments/assets/e14994ec-356b-4a93-81c6-8e73771dccec)
 
 5. **Create an AITools Node**
    - Create a TA AITools node.
@@ -43,7 +43,7 @@ This project implements a set of custom nodes for ComfyUI, integrating some of t
      ![image](https://github.com/user-attachments/assets/124df587-0e60-4446-bdfa-85b18a563df8)
 
 8. **Create an ExecuteNode to Link Nodes**
-   - ![image](https://github.com/user-attachments/assets/5dfb2950-c47d-4ea8-a612-c82f1bd226ec)
+![image](https://github.com/user-attachments/assets/d6f90446-3a6c-4318-b0fd-04e6002a9a36)
 
 9. **Execute and Wait for Results**
-   - ![image](https://github.com/user-attachments/assets/50a13afe-1b53-4644-9ea3-27c1349859a5)
+![image](https://github.com/user-attachments/assets/2d0afeea-05be-4bb3-94e6-f1ba75004600)

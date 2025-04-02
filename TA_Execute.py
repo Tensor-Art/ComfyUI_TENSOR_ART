@@ -1,5 +1,4 @@
 import os
-
 import requests
 import json
 import hashlib
@@ -10,6 +9,7 @@ import numpy as np
 import torch
 import comfy
 import server
+from . import TA_SettingsManger
 
 class TAExecuteNode:
     def __init__(self):
@@ -19,7 +19,6 @@ class TAExecuteNode:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "settings": ("STRUCT",),  # 设置TA的基本信息
                 "input": ("STRUCT",),    # 输入的数据
             },
             "optional": {
@@ -34,12 +33,15 @@ class TAExecuteNode:
     CATEGORY = "TensorArt"
     FUNCTION = "process"
 
-    def process(self, settings, input=None, runTimeout=600, queryInterval=5):
-        if not settings:
-            return
-
+    def process(self, input=None, runTimeout=600, queryInterval=5):
         if not input:
             return
+        settings = TA_SettingsManger.instance.load_settings()
+        if settings["baseUrl"] == "":
+            raise Exception("baseUrl cannot be empty")
+
+        if settings["apiKey"] == "":
+            raise Exception("apiKey cannot be empty")
 
         print(f"settings: {settings}, input: {input} creating job...")
         createJobResponse = self.create_ai_tools_job(settings, input)

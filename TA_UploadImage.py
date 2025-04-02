@@ -3,13 +3,13 @@ from PIL import Image
 from io import BytesIO
 import torch
 import numpy as np
+from . import TA_SettingsManger
 
 class TAUploadImageNode:
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "settings": ("STRUCT",),
                 "image": ("IMAGE",),
             },
         }
@@ -18,9 +18,16 @@ class TAUploadImageNode:
     CATEGORY = "TensorArt"
     FUNCTION = "process"
 
-    def process(self, image: torch.Tensor, settings):
+    def process(self, image: torch.Tensor):
+        settings = TA_SettingsManger.instance.load_settings()
         if not settings:
             raise Exception("settings cannot be empty")
+
+        if settings["baseUrl"] == "":
+            raise Exception("baseUrl cannot be empty")
+
+        if settings["apiKey"] == "":
+            raise Exception("apiKey cannot be empty")
 
         if not isinstance(image, torch.Tensor):
             raise TypeError("image must be a torch.Tensor")

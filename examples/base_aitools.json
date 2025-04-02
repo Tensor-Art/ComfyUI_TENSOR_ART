@@ -1,17 +1,88 @@
 {
-  "last_node_id": 21,
-  "last_link_id": 14,
+  "last_node_id": 22,
+  "last_link_id": 27,
   "nodes": [
     {
-      "id": 11,
-      "type": "TA_SettingsNode",
+      "id": 21,
+      "type": "TA_ExecuteNode",
       "pos": [
-        908.6060180664062,
-        527.30322265625
+        -73.9769287109375,
+        266.5171813964844
       ],
       "size": [
         315,
-        82
+        102
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "STRUCT",
+          "link": 27
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            25
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "videos",
+          "type": "VIDEO",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "TA_ExecuteNode"
+      },
+      "widgets_values": [
+        1200,
+        5
+      ]
+    },
+    {
+      "id": 13,
+      "type": "SaveImage",
+      "pos": [
+        266.6294860839844,
+        195.73829650878906
+      ],
+      "size": [
+        315,
+        270
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 25
+        }
+      ],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "ComfyUI"
+      ]
+    },
+    {
+      "id": 22,
+      "type": "TA_AIToolsNode",
+      "pos": [
+        -439.6632080078125,
+        214.3904571533203
+      ],
+      "size": [
+        315,
+        170
       ],
       "flags": {},
       "order": 0,
@@ -22,40 +93,7 @@
           "name": "STRUCT",
           "type": "STRUCT",
           "links": [
-            10
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "TA_SettingsNode"
-      },
-      "widgets_values": [
-        "https://ap-east-1.tensorart.cloud",
-        ""
-      ]
-    },
-    {
-      "id": 20,
-      "type": "TA_AIToolsNode",
-      "pos": [
-        924.911376953125,
-        776.2774047851562
-      ],
-      "size": [
-        315,
-        170
-      ],
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "STRUCT",
-          "type": "STRUCT",
-          "links": [
-            13
+            27
           ],
           "slot_index": 0
         }
@@ -68,8 +106,8 @@
         "💗 Join Powerpuff Girls! ⚡️",
         "64",
         "image",
-        "",
-        "upload",
+        "9f292044-0712-4ddf-8a2d-7c6643c827d9",
+        "9f292044-0712-4ddf-8a2d-7c6643c827d9",
         null,
         null,
         null,
@@ -365,118 +403,34 @@
         null,
         null
       ]
-    },
-    {
-      "id": 18,
-      "type": "TA_ExecuteNode",
-      "pos": [
-        1313.7274169921875,
-        768.123291015625
-      ],
-      "size": [
-        315,
-        102
-      ],
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "settings",
-          "type": "STRUCT",
-          "link": 10
-        },
-        {
-          "name": "input",
-          "type": "STRUCT",
-          "link": 13
-        }
-      ],
-      "outputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "links": [
-            14
-          ],
-          "slot_index": 0
-        },
-        {
-          "name": "videos",
-          "type": "VIDEO",
-          "links": null
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "TA_ExecuteNode"
-      },
-      "widgets_values": [
-        1200,
-        5
-      ]
-    },
-    {
-      "id": 21,
-      "type": "SaveImage",
-      "pos": [
-        1727.1827392578125,
-        794.7152709960938
-      ],
-      "size": [
-        315,
-        58
-      ],
-      "flags": {},
-      "order": 3,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 14
-        }
-      ],
-      "outputs": [],
-      "properties": {},
-      "widgets_values": [
-        "ComfyUI"
-      ]
     }
   ],
   "links": [
     [
-      10,
-      11,
+      25,
+      21,
       0,
-      18,
-      0,
-      "STRUCT"
-    ],
-    [
       13,
-      20,
       0,
-      18,
-      1,
-      "STRUCT"
+      "IMAGE"
     ],
     [
-      14,
-      18,
+      27,
+      22,
       0,
       21,
       0,
-      "IMAGE"
+      "STRUCT"
     ]
   ],
   "groups": [],
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.9090909090909091,
+      "scale": 0.8264462809917354,
       "offset": [
-        -339.71544895945163,
-        -203.28166323398955
+        1320.5937061820046,
+        199.52251056026068
       ]
     }
   },

@@ -2,6 +2,7 @@ import {app} from '../../scripts/app.js'
 import {api} from '../../scripts/api.js'
 import { httpGet, httpPost } from "./utils/httpUtils.js";
 import { useNodeFileInput, uploadFile } from "./utils/upload.js";
+import { taMenu} from "./ta_menu.js"
 
 let origProps = {};
 let initialized = false;
@@ -10,7 +11,6 @@ const HIDDEN_TAG = "tahide";
 
 const nodesList = {
     "TA_AIToolsNode": {},
-    "TA_SettingsNode": {},
 }
 const nodeWidgetHandlers = {
     "TA_AIToolsNode": {
@@ -224,30 +224,20 @@ async function TAAIToolsNodeAiToolsIdHandler(node, widget) {
 
     resetAIToolsNode(node);
     let data = {};
-    let baseUrl = "";
-    let apiKey = "";
+    let baseUrl = taMenu.getBaseUrl();
+    let apiKey = taMenu.getApiKey();
     try {
-        let settingNode = getSettingNode();
-        if (!settingNode) {
-            throw new Error("Missing settingNode");
-        }
-
         let aiToolsId = widget.value;
         if (!aiToolsId) {
             throw new Error("Missing aiToolsId");
         }
-        baseUrl = findWidgetByName(settingNode, "baseUrl")?.value
-        apiKey = findWidgetByName(settingNode, "apiKey")?.value
         if (!baseUrl || !apiKey) {
             throw new Error("Missing base url or api key");
         }
-
         data = await httpGet(baseUrl+"/v1/workflows/"+aiToolsId, apiKey);
     } catch (error) {
         console.log(error);
     } finally {
-        console.log(data)
-        console.log(node)
         findWidgetByName(node, "aiToolsName").value = data.name;
         handleWidgetVisibility(node, data.fields.fieldAttrs.length, "fieldValue_", maxCount);
         handleWidgetVisibility(node, data.fields.fieldAttrs.length, "fieldName_", maxCount);
@@ -269,7 +259,6 @@ async function TAAIToolsNodeAiToolsIdHandler(node, widget) {
             if (inputStr.options && inputStr.options.values) {
                 fieldValueWidget.options = inputStr.options;
                 fieldValueWidget.type = "combo";
-                console.log(fieldValueWidget);
             }
             fieldNameWidget.value = field.fieldName;
             fieldNameWidget.disabled = true;
@@ -313,7 +302,6 @@ app.registerExtension({
     name: "tensorart-aitools",
     setup: function (){
         api.addEventListener('ta_execute', (event) => {
-            console.log(event)
             const handler = eventTAExecuteStatusHandler[event.detail.status]
             if (handler) {
                 handler(event);

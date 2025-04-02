@@ -22,9 +22,9 @@ git clone git@github.com:Tensor-Art/ComfyUI_TENSOR_ART.git
 ![image](https://github.com/user-attachments/assets/ed5b1c98-7644-46cb-adc9-f797924372a7)
 3. 获取当前的BaseUrl和ApiKey
 ![image](https://github.com/user-attachments/assets/a2a7c83d-a7ac-4184-bc57-0a5c34e3a6a9)
-4. 创建Settings节点
-创建TA Settings节点，并将第三步获取到的BaseUrl和ApiKey填入
-![image](https://github.com/user-attachments/assets/7a8ee242-22d0-4499-9ebe-916b982db22a)
+4. 打开Setting页面
+找到TensorArt.Settings，并将第三步获取到的BaseUrl和ApiKey填入
+![image](https://github.com/user-attachments/assets/e14994ec-356b-4a93-81c6-8e73771dccec)
 5. 创建AITools节点
 创建TA AITools节点
 ![image](https://github.com/user-attachments/assets/e536412b-8f21-408c-b659-10edf5c0025f)
@@ -34,7 +34,8 @@ git clone git@github.com:Tensor-Art/ComfyUI_TENSOR_ART.git
 会自动获取AITools内容并渲染节点
 ![image](https://github.com/user-attachments/assets/124df587-0e60-4446-bdfa-85b18a563df8)
 8. 创建ExecuteNode进行节点的LINK
-![image](https://github.com/user-attachments/assets/5dfb2950-c47d-4ea8-a612-c82f1bd226ec)
+![image](https://github.com/user-attachments/assets/d6f90446-3a6c-4318-b0fd-04e6002a9a36)
 9. 执行等待结果
-![image](https://github.com/user-attachments/assets/50a13afe-1b53-4644-9ea3-27c1349859a5)
+![image](https://github.com/user-attachments/assets/2d0afeea-05be-4bb3-94e6-f1ba75004600)
+
 

@@ -146,6 +146,7 @@ function TAAIToolsNodeCreateHandler(node) {
 }
 
 function resetAIToolsNode(node) {
+    console.log("[TA] resetAIToolsNode called, widgets count:", node.widgets?.length);
     // Hide both widgets and inputs to properly collapse the node
     handleWidgetVisibility(node, 0, "fieldValue_", maxCount);
     handleWidgetVisibility(node, 0, "fieldName_", maxCount);
@@ -163,6 +164,8 @@ function resetAIToolsNode(node) {
             node.widgets.splice(i, 1);
         }
     }
+    // Force canvas refresh
+    node.setDirtyCanvas(true, true);
 }
 
 const nodeName2Handler = {
@@ -348,6 +351,8 @@ app.registerExtension({
         setTimeout(() => {
             initialized = true;
             createLogic(node);
-        }, 100);
+            // Force canvas refresh after hiding widgets
+            node.setDirtyCanvas(true, true);
+        }, 500);
     },
 });

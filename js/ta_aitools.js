@@ -201,8 +201,22 @@ async function onAiToolsIdChange(node, widget) {
         return;
     }
 
-    const baseUrl = taMenu.getBaseUrl();
-    const apiKey = taMenu.getApiKey();
+    let baseUrl = taMenu.getBaseUrl();
+    let apiKey = taMenu.getApiKey();
+
+    // Fallback: fetch from server settings if frontend settings are empty
+    if (!baseUrl || !apiKey) {
+        try {
+            const resp = await api.fetchApi('/api/settings', { cache: 'no-store' });
+            if (resp.status === 200) {
+                const settings = await resp.json();
+                baseUrl = baseUrl || settings['TensorArt.Settings.BaseUrl'] || '';
+                apiKey = apiKey || settings['TensorArt.Settings.ApiKey'] || '';
+            }
+        } catch (e) {
+            console.error("Failed to fetch settings from server:", e);
+        }
+    }
 
     if (!baseUrl || !apiKey) {
         console.error("Missing base url or api key");

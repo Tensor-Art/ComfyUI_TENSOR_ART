@@ -146,14 +146,18 @@ function TAAIToolsNodeCreateHandler(node) {
 }
 
 function resetAIToolsNode(node) {
-    console.log("[TA] resetAIToolsNode called, widgets count:", node.widgets?.length);
     // Hide both widgets and inputs to properly collapse the node
-    handleWidgetVisibility(node, 0, "fieldValue_", maxCount);
-    handleWidgetVisibility(node, 0, "fieldName_", maxCount);
-    handleWidgetVisibility(node, 0, "nodeId_", maxCount);
+    // Use direct widget iteration to ensure all dynamic fields are hidden
+    for (const widget of node.widgets || []) {
+        if (/^(fieldValue_|fieldName_|nodeId_)\d+$/.test(widget.name)) {
+            toggleWidget(node, widget, false);
+        }
+    }
+    // Hide inputs as well
     handleInputsVisibility(node, 0, "fieldValue_", maxCount);
     handleInputsVisibility(node, 0, "fieldName_", maxCount);
     handleInputsVisibility(node, 0, "nodeId_", maxCount);
+    
     const aiToolsNameWidget = findWidgetByName(node, "aiToolsName");
     if (aiToolsNameWidget) {
         aiToolsNameWidget.value = "null";

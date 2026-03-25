@@ -146,11 +146,13 @@ function TAAIToolsNodeCreateHandler(node) {
 }
 
 function resetAIToolsNode(node) {
-    // Hide both widgets and inputs to properly collapse the node
-    // Use direct widget iteration to ensure all dynamic fields are hidden
+    // Force hide all dynamic field widgets by directly modifying their properties
+    const HIDDEN_TAG = "tahide";
     for (const widget of node.widgets || []) {
         if (/^(fieldValue_|fieldName_|nodeId_)\d+$/.test(widget.name)) {
-            toggleWidget(node, widget, false);
+            // Directly hide without going through toggleWidget
+            widget.type = HIDDEN_TAG;
+            widget.computeSize = () => [0, -4];
         }
     }
     // Hide inputs as well
@@ -168,7 +170,9 @@ function resetAIToolsNode(node) {
             node.widgets.splice(i, 1);
         }
     }
-    // Force canvas refresh
+    // Resize node and refresh
+    const newHeight = node.computeSize()[1];
+    node.setSize([node.size[0], newHeight]);
     node.setDirtyCanvas(true, true);
 }
 

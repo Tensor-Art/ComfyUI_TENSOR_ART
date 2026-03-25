@@ -1,47 +1,33 @@
-INPUT_LIM = 99
+import json
+
 
 class TAAIToolsNode:
     def __init__(self):
-        self.fieldInputs = []
+        pass
 
     @classmethod
     def INPUT_TYPES(cls):
-        inputs = {
+        return {
             "required": {
                 "aiToolsId": ("STRING", {"default": ""}),
                 "aiToolsName": ("STRING", {"default": ""}),
             },
-            "optional": {},
+            "optional": {
+                "fieldData": ("STRING", {"default": "[]", "multiline": True}),
+            },
         }
-
-        for i in range(1, INPUT_LIM+1):
-            inputs["optional"][f"nodeId_{i}"] = ("STRING", {"default": "", "tooltip": f"nodeId {i}"})
-            inputs["optional"][f"fieldName_{i}"] = ("STRING", {"default": "", "tooltip": f"fieldName {i}"})
-            inputs["optional"][f"fieldValue_{i}"] = ("STRING", {})
-
-        return inputs
 
     RETURN_TYPES = ("STRUCT",)
     CATEGORY = "TensorArt"
     FUNCTION = "process"
 
-    def process(self, aiToolsId, **kwargs):
-        self.fieldInputs = []
+    def process(self, aiToolsId, aiToolsName, fieldData="[]"):
         if not aiToolsId:
             return {}
 
-        for i in range(1, INPUT_LIM + 1):
-            if not kwargs.get(f"nodeId_{i}"):
-                continue
+        try:
+            fieldInputs = json.loads(fieldData) if fieldData else []
+        except json.JSONDecodeError:
+            fieldInputs = []
 
-            nodeInfo = {
-                "nodeId": kwargs.get(f"nodeId_{i}"),
-                "fieldName": kwargs.get(f"fieldName_{i}"),
-                "fieldValue": kwargs.get(f"fieldValue_{i}")
-            }
-
-            if nodeInfo["nodeId"] == "":
-                continue
-            self.fieldInputs.append(nodeInfo)
-
-        return [{"fieldInputs": self.fieldInputs, "aiToolsId": aiToolsId}]
+        return [{"fieldInputs": fieldInputs, "aiToolsId": aiToolsId}]

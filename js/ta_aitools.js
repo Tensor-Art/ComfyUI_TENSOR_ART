@@ -4,31 +4,12 @@ import { httpGet, httpPost } from "./utils/httpUtils.js";
 import { useNodeFileInput, uploadFile } from "./utils/upload.js";
 import { taMenu} from "./ta_menu.js"
 
-let origProps = {};
-let initialized = false;
-let maxCount = 99
-const HIDDEN_TAG = "tahide";
-
 const nodesList = {
     "TA_AIToolsNode": {},
 }
-const nodeWidgetHandlers = {
-    "TA_AIToolsNode": {
-        "aiToolsId": TAAIToolsNodeAiToolsIdHandler,
-    },
-}
 
-const nodeCreateHandlers = {
-    "TA_AIToolsNode": TAAIToolsNodeCreateHandler,
-}
-
-// todo: use custom widget to replace dialog
-const eventTAExecuteStatusHandler = {
-    "WAITING":  eventTAExecuteWaitingHandler,
-    "RUNNING":  eventTAExecuteRunningHandler,
-    "SUCCESS":  eventTAExecuteSuccessHandler,
-    "END": eventTAExecuteEndHandler,
-}
+// 存储每个节点的动态字段 widgets，以便后续清理
+const nodeDynamicWidgets = new Map();
 
 const getSettingNode = () => {
     return app.graph.findNodeByTitle("TA SettingsNode");
@@ -37,144 +18,6 @@ const getSettingNode = () => {
 const findWidgetByName = (node, name) => {
     return node.widgets ? node.widgets.find((w) => w.name === name) : null;
 };
-
-const findInputIndexByName = (node, name) => {
-    return node.inputs ? node.inputs.findIndex((input) => input.name === name) : -1;
-}
-
-const doesInputWithNameExist = (node, name) => {
-    return node.inputs ? node.inputs.some((input) => input.name === name) : false;
-};
-
-const moveWidgetBehind = (node, widget, target) => {
-    const index = node.widgets.indexOf(widget);
-    if (index === -1) {
-        return;
-    }
-    node.widgets.splice(index, 1);
-    const targetIndex = node.widgets.indexOf(target);
-    node.widgets.splice(targetIndex+1, 0, widget);
-}
-
-function eventTAExecuteWaitingHandler(event) {
-    let status = event.detail.status;
-    let cur = event.detail.cur;
-    let total = event.detail.total;
-    dialog(`status: ${status}, queue: ${cur}/${total}`, true);
-}
-
-function eventTAExecuteSuccessHandler(event) {
-    let status = event.detail.status;
-    dialog(`status: ${status}, Saving results...`, true);
-}
-
-function eventTAExecuteEndHandler(event) {
-    app.ui.dialog.close();
-}
-
-function eventTAExecuteRunningHandler(event) {
-    let status = event.detail.status;
-    dialog(`status: ${status}, Please be patient...`, true);
-}
-
-function handleWidgetVisibility(node, thresholdValue, widgetNamePrefix, maxCount) {
-    for (let i = 1; i <= maxCount; i++) {
-        const widget = findWidgetByName(node, `${widgetNamePrefix}${i}`);
-        if (widget) {
-            toggleWidget(node, widget, i <= thresholdValue);
-        }
-    }
-}
-
-function handleInputsVisibility(node, thresholdValue, inputNamePrefix, maxCount) {
-    for (let i = 1; i <= maxCount; i++) {
-        toggleInput(node, `${inputNamePrefix}${i}`,  i <= thresholdValue);
-    }
-}
-
-function toggleInput(node, inputName, show = false) {
-    let slot = findInputIndexByName(node, inputName);
-    if (!node.graph) {
-        return
-    }
-    if (slot !== -1) {
-        let input = node.inputs[slot]
-        // Store the original properties of the input if not already stored
-        if (!origProps[input.name]) {
-            origProps[input.name] = input;
-        }
-
-        if (!show) {
-            node.removeInput(slot);
-        }
-    } else {
-        if (show) {
-            let input = origProps[inputName];
-            if (input) {
-                origProps[inputName] = null;
-                node.addInput(input.name, input.type);
-            }
-        }
-    }
-}
-
-// Toggle Widget + change size
-function toggleWidget(node, widget, show = false, suffix = "") {
-    // Skip check for TA_AIToolsNode dynamic fields that need to be hidden/shown
-    const isDynamicField = /^(fieldValue_|fieldName_|nodeId_)\d+$/.test(widget?.name);
-    if (!widget || (!isDynamicField && doesInputWithNameExist(node, widget.name))) return;
-    // Store the original properties of the widget if not already stored
-    if (!origProps[widget.name]) {
-        origProps[widget.name] = { origType: widget.type, origComputeSize: widget.computeSize, value: widget.value };
-    }
-
-    const origSize = node.size;
-    // Set the widget type and computeSize based on the show flag
-    widget.type = show ? origProps[widget.name].origType : HIDDEN_TAG + suffix;
-    widget.computeSize = show ? origProps[widget.name].origComputeSize : () => [0, -4];
-    widget.value = show ? origProps[widget.name].value : undefined;
-    // Recursively handle linked widgets if they exist
-    widget.linkedWidgets?.forEach(w => toggleWidget(node, w, ":" + widget.name, show));
-
-    // Calculate the new height for the node based on its computeSize method
-    const newHeight = node.computeSize()[1];
-    node.setSize([node.size[0], newHeight]);
-}
-
-function TAAIToolsNodeCreateHandler(node) {
-   resetAIToolsNode(node);
-}
-
-function resetAIToolsNode(node) {
-    // Force hide all dynamic field widgets by directly modifying their properties
-    const HIDDEN_TAG = "tahide";
-    for (const widget of node.widgets || []) {
-        if (/^(fieldValue_|fieldName_|nodeId_)\d+$/.test(widget.name)) {
-            // Directly hide without going through toggleWidget
-            widget.type = HIDDEN_TAG;
-            widget.computeSize = () => [0, -4];
-        }
-    }
-    // Hide inputs as well
-    handleInputsVisibility(node, 0, "fieldValue_", maxCount);
-    handleInputsVisibility(node, 0, "fieldName_", maxCount);
-    handleInputsVisibility(node, 0, "nodeId_", maxCount);
-    
-    const aiToolsNameWidget = findWidgetByName(node, "aiToolsName");
-    if (aiToolsNameWidget) {
-        aiToolsNameWidget.value = "null";
-    }
-    //clean once widget
-    for (let i = node.widgets.length; i >= 0; i--) {
-        if (node.widgets[i]?.once) {
-            node.widgets.splice(i, 1);
-        }
-    }
-    // Resize node and refresh
-    const newHeight = node.computeSize()[1];
-    node.setSize([node.size[0], newHeight]);
-    node.setDirtyCanvas(true, true);
-}
 
 const nodeName2Handler = {
     "TensorArt_LoadImage": loadImageHandler,
@@ -209,6 +52,8 @@ function loadImageHandler(node, widget, baseUrl, apiKey) {
                 if (resourceId) {
                     newWidget.value = resourceId;
                     widget.value = resourceId;
+                    // 触发序列化更新
+                    updateFieldData(node);
                 }
              }
         })
@@ -237,75 +82,6 @@ function dialog(text, loading) {
     }
 }
 
-async function TAAIToolsNodeAiToolsIdHandler(node, widget) {
-    if (!initialized) {
-        return;
-    }
-
-    resetAIToolsNode(node);
-    let data = {};
-    let baseUrl = taMenu.getBaseUrl();
-    let apiKey = taMenu.getApiKey();
-    try {
-        let aiToolsId = widget.value;
-        if (!aiToolsId) {
-            throw new Error("Missing aiToolsId");
-        }
-        if (!baseUrl || !apiKey) {
-            throw new Error("Missing base url or api key");
-        }
-        data = await httpGet(baseUrl+"/v1/workflows/"+aiToolsId, apiKey);
-    } catch (error) {
-        console.log(error);
-    } finally {
-        findWidgetByName(node, "aiToolsName").value = data.name;
-        handleWidgetVisibility(node, data.fields.fieldAttrs.length, "fieldValue_", maxCount);
-        handleWidgetVisibility(node, data.fields.fieldAttrs.length, "fieldName_", maxCount);
-        handleWidgetVisibility(node, data.fields.fieldAttrs.length, "nodeId_", maxCount);
-        data.fields.fieldAttrs.forEach((field, index) => {
-            let fieldValueWidget = findWidgetByName(node, `fieldValue_${index+1}`)
-            let fieldNameWidget = findWidgetByName(node, `fieldName_${index+1}`)
-            let nodeIdWidget = findWidgetByName(node, `nodeId_${index+1}`)
-            let h = nodeName2Handler[field.nodeName]
-            if (h) {
-                let newWidget = h(node, fieldValueWidget, baseUrl, apiKey)
-                if (newWidget) {
-                    moveWidgetBehind(node, newWidget, fieldValueWidget);
-                }
-            } else {
-                fieldValueWidget.value = field.fieldValue;
-            }
-            let inputStr = JSON.parse(field.inputString)
-            if (inputStr.options && inputStr.options.values) {
-                fieldValueWidget.options = inputStr.options;
-                fieldValueWidget.type = "combo";
-            }
-            fieldNameWidget.value = field.fieldName;
-            fieldNameWidget.disabled = true;
-            nodeIdWidget.value = field.nodeId
-            nodeIdWidget.disabled = true;
-            nodeIdWidget.hidden = true;
-        })
-        const newHeight = node.computeSize()[1];
-        node.setSize([node.size[0], newHeight]);
-        node.setDirtyCanvas(true, true);
-    }
-}
-
-function widgetLogic(node, widget) {
-    const handler = nodeWidgetHandlers[node.comfyClass]?.[widget.name];
-    if (handler) {
-        handler(node, widget);
-    }
-}
-
-function createLogic(node) {
-    const handler = nodeCreateHandlers[node.comfyClass];
-    if (handler) {
-        handler(node);
-    }
-}
-
 async function handleUpload(file, baseUrl, apiKey) {
     let resourceImgRes = await httpPost(baseUrl+"/v1/resource/image", apiKey, {})
     if (!resourceImgRes) {
@@ -318,49 +94,175 @@ async function handleUpload(file, baseUrl, apiKey) {
     return resourceImgRes.resourceId;
 }
 
+// 序列化所有动态字段到 fieldData
+function updateFieldData(node) {
+    const fieldDataWidget = findWidgetByName(node, "fieldData");
+    if (!fieldDataWidget) return;
+
+    const dynamicWidgets = nodeDynamicWidgets.get(node.id);
+    if (!dynamicWidgets) return;
+
+    const fieldInputs = dynamicWidgets.map(dw => ({
+        nodeId: dw.nodeId,
+        fieldName: dw.fieldName,
+        fieldValue: dw.widget.value || ""
+    }));
+
+    fieldDataWidget.value = JSON.stringify(fieldInputs);
+}
+
+// 清理节点的动态 widgets
+function clearDynamicWidgets(node) {
+    const dynamicWidgets = nodeDynamicWidgets.get(node.id);
+    if (!dynamicWidgets) return;
+
+    for (const dw of dynamicWidgets) {
+        // 删除 widget
+        const idx = node.widgets.indexOf(dw.widget);
+        if (idx > -1) {
+            node.widgets.splice(idx, 1);
+        }
+        // 删除关联的 button widget (如果有)
+        if (dw.buttonWidget) {
+            const btnIdx = node.widgets.indexOf(dw.buttonWidget);
+            if (btnIdx > -1) {
+                node.widgets.splice(btnIdx, 1);
+            }
+        }
+    }
+
+    nodeDynamicWidgets.delete(node.id);
+}
+
+// 创建动态字段控件
+function createDynamicFieldWidgets(node, fields, baseUrl, apiKey) {
+    clearDynamicWidgets(node);
+
+    const dynamicWidgets = [];
+
+    for (const field of fields) {
+        const fieldName = field.fieldName;
+        const nodeId = field.nodeId;
+        const defaultValue = field.fieldValue || "";
+
+        // 创建 label widget 显示字段名
+        const labelWidget = node.addWidget("text", `📋 ${fieldName}`, defaultValue, (v) => {
+            updateFieldData(node);
+        });
+
+        // 设置 widget 类型和选项
+        let inputStr = {};
+        try {
+            inputStr = JSON.parse(field.inputString || "{}");
+        } catch (e) {}
+
+        if (inputStr.options && inputStr.options.values) {
+            labelWidget.type = "combo";
+            labelWidget.options = inputStr.options;
+        }
+
+        const dw = {
+            widget: labelWidget,
+            nodeId: nodeId,
+            fieldName: fieldName,
+            buttonWidget: null
+        };
+
+        // 检查是否需要特殊处理（如图片上传）
+        const handler = nodeName2Handler[field.nodeName];
+        if (handler) {
+            const btnWidget = handler(node, labelWidget, baseUrl, apiKey);
+            if (btnWidget) {
+                dw.buttonWidget = btnWidget;
+            }
+        }
+
+        dynamicWidgets.push(dw);
+    }
+
+    nodeDynamicWidgets.set(node.id, dynamicWidgets);
+
+    // 初始序列化
+    updateFieldData(node);
+
+    // 调整节点大小
+    node.setSize(node.computeSize());
+    node.setDirtyCanvas(true, true);
+}
+
+// 处理 aiToolsId 变化
+async function onAiToolsIdChange(node, widget) {
+    const aiToolsId = widget.value;
+    if (!aiToolsId) {
+        clearDynamicWidgets(node);
+        const aiToolsNameWidget = findWidgetByName(node, "aiToolsName");
+        if (aiToolsNameWidget) aiToolsNameWidget.value = "";
+        updateFieldData(node);
+        return;
+    }
+
+    const baseUrl = taMenu.getBaseUrl();
+    const apiKey = taMenu.getApiKey();
+
+    if (!baseUrl || !apiKey) {
+        console.error("Missing base url or api key");
+        return;
+    }
+
+    try {
+        const data = await httpGet(baseUrl + "/v1/workflows/" + aiToolsId, apiKey);
+
+        // 更新 aiToolsName
+        const aiToolsNameWidget = findWidgetByName(node, "aiToolsName");
+        if (aiToolsNameWidget) {
+            aiToolsNameWidget.value = data.name || "";
+        }
+
+        // 创建动态字段
+        if (data.fields && data.fields.fieldAttrs) {
+            createDynamicFieldWidgets(node, data.fields.fieldAttrs, baseUrl, apiKey);
+        }
+    } catch (error) {
+        console.error("Failed to fetch workflow:", error);
+    }
+}
+
 app.registerExtension({
     name: "tensorart-aitools",
     setup: function (){
-        api.addEventListener('ta_execute', (event) => {
-            const handler = eventTAExecuteStatusHandler[event.detail.status]
-            if (handler) {
-                handler(event);
-            }
-        }, false);
     },
     nodeCreated(node) {
-        if (!nodesList[node.comfyClass]) {
-            return
+        if (node.comfyClass !== "TA_AIToolsNode") {
+            return;
         }
-        for (const w of node.widgets || []) {
-            let widgetValue = w.value;
-            let originalDescriptor = Object.getOwnPropertyDescriptor(w, 'value');
-            if (!originalDescriptor) {
-                originalDescriptor = Object.getOwnPropertyDescriptor(w.constructor.prototype, 'value');
-            }
 
-            Object.defineProperty(w, 'value', {
-                get() {
-                    return originalDescriptor && originalDescriptor.get
-                        ? originalDescriptor.get.call(w)
-                        : widgetValue;
-                },
-                set(newVal) {
-                    if (originalDescriptor && originalDescriptor.set) {
-                        originalDescriptor.set.call(w, newVal);
-                    } else {
-                        widgetValue = newVal;
+        // 监听 aiToolsId widget 的变化
+        const aiToolsIdWidget = findWidgetByName(node, "aiToolsId");
+        if (!aiToolsIdWidget) return;
+
+        // 拦截 value setter 来检测变化
+        let originalValue = aiToolsIdWidget.value;
+        Object.defineProperty(aiToolsIdWidget, 'value', {
+            get() {
+                return originalValue;
+            },
+            set(newVal) {
+                const oldVal = originalValue;
+                originalValue = newVal;
+                // 延迟执行，确保 widget 值已更新
+                setTimeout(() => {
+                    if (newVal !== oldVal) {
+                        onAiToolsIdChange(node, aiToolsIdWidget);
                     }
-                    widgetLogic(node, w);
-                }
-            });
+                }, 0);
+            }
+        });
+
+        // 如果已经有 aiToolsId 值，立即加载
+        if (aiToolsIdWidget.value) {
+            setTimeout(() => {
+                onAiToolsIdChange(node, aiToolsIdWidget);
+            }, 100);
         }
-        // Delay initialization to ensure widgets are fully ready (especially on Windows)
-        setTimeout(() => {
-            initialized = true;
-            createLogic(node);
-            // Force canvas refresh after hiding widgets
-            node.setDirtyCanvas(true, true);
-        }, 500);
     },
 });

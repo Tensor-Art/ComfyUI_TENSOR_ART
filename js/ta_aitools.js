@@ -120,7 +120,9 @@ function toggleInput(node, inputName, show = false) {
 
 // Toggle Widget + change size
 function toggleWidget(node, widget, show = false, suffix = "") {
-    if (!widget || doesInputWithNameExist(node, widget.name)) return;
+    // Skip check for TA_AIToolsNode dynamic fields that need to be hidden/shown
+    const isDynamicField = /^(fieldValue_|fieldName_|nodeId_)\d+$/.test(widget?.name);
+    if (!widget || (!isDynamicField && doesInputWithNameExist(node, widget.name))) return;
     // Store the original properties of the widget if not already stored
     if (!origProps[widget.name]) {
         origProps[widget.name] = { origType: widget.type, origComputeSize: widget.computeSize, value: widget.value };

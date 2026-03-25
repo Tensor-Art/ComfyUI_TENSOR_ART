@@ -146,10 +146,17 @@ function TAAIToolsNodeCreateHandler(node) {
 }
 
 function resetAIToolsNode(node) {
+    // Hide both widgets and inputs to properly collapse the node
     handleWidgetVisibility(node, 0, "fieldValue_", maxCount);
     handleWidgetVisibility(node, 0, "fieldName_", maxCount);
     handleWidgetVisibility(node, 0, "nodeId_", maxCount);
-    findWidgetByName(node, "aiToolsName").value = "null";
+    handleInputsVisibility(node, 0, "fieldValue_", maxCount);
+    handleInputsVisibility(node, 0, "fieldName_", maxCount);
+    handleInputsVisibility(node, 0, "nodeId_", maxCount);
+    const aiToolsNameWidget = findWidgetByName(node, "aiToolsName");
+    if (aiToolsNameWidget) {
+        aiToolsNameWidget.value = "null";
+    }
     //clean once widget
     for (let i = node.widgets.length; i >= 0; i--) {
         if (node.widgets[i]?.once) {
@@ -314,7 +321,6 @@ app.registerExtension({
         if (!nodesList[node.comfyClass]) {
             return
         }
-        createLogic(node);
         for (const w of node.widgets || []) {
             let widgetValue = w.value;
             let originalDescriptor = Object.getOwnPropertyDescriptor(w, 'value');
@@ -338,6 +344,10 @@ app.registerExtension({
                 }
             });
         }
-        setTimeout(() => {initialized = true;}, 500);
+        // Delay initialization to ensure widgets are fully ready (especially on Windows)
+        setTimeout(() => {
+            initialized = true;
+            createLogic(node);
+        }, 100);
     },
 });

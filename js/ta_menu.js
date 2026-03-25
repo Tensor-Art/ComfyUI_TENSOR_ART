@@ -1,6 +1,6 @@
 import {app} from '../../scripts/app.js'
 import {api} from '../../scripts/api.js'
-import { ComfyButtonGroup } from '../../scripts/ui/components/buttonGroup.js';
+// import { ComfyButtonGroup } from '../../scripts/ui/components/buttonGroup.js';
 
 class TAMenu {
     name = "TensorArt.Menu";
